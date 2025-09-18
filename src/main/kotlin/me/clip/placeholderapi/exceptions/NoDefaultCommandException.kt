@@ -17,12 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.exceptions
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+class NoDefaultCommandException(message: String) : RuntimeException(message)
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
-}

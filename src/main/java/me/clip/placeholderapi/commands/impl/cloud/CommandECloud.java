@@ -113,7 +113,7 @@ public final class CommandECloud extends PlaceholderCommand {
       return;
     }
 
-    if (!plugin.getPlaceholderAPIConfig().isCloudEnabled()) {
+    if (!plugin.getConfig().isCloudEnabled()) {
       Msg.msg(sender, "&cThe eCloud Manager is not enabled! To enable it, set 'cloud_enabled' to true and reload the plugin.");
       return;
     }

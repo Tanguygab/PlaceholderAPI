@@ -17,48 +17,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.cloud
 
-package me.clip.placeholderapi.commands.impl.cloud;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.manager.CloudExpansionManager;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandECloudStatus : PlaceholderCommand("status") {
+    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {
+        val manager = plugin.cloudExpansionManager
 
-public final class CommandECloudStatus extends PlaceholderCommand {
+        val updateCount: Int = manager.getCloudUpdateCount()
+        val authorCount: Int = manager.getCloudExpansionAuthorCount()
+        val expansionCount: Int = manager.getCloudExpansions().size
 
-  public CommandECloudStatus() {
-    super("status");
-  }
+        var builder = "&bThere are &a$expansionCount&b expansions available on the eCloud.\n" +
+                "&7A total of &f$authorCount&7 authors have contributed to the eCloud.\n"
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    final CloudExpansionManager manager = plugin.getCloudExpansionManager();
+        if (updateCount > 0) {
+            builder += "&eYou have &f$updateCount&e expansion${if (updateCount > 1) "s" else ""} installed that ${if (updateCount > 1) "have" else "has"} an update available."
+        }
 
-    final int updateCount = manager.getCloudUpdateCount();
-    final int authorCount = manager.getCloudExpansionAuthorCount();
-    final int expansionCount = manager.getCloudExpansions().size();
-
-    final StringBuilder builder = new StringBuilder();
-
-    builder.append("&bThere are &a").append(expansionCount)
-        .append("&b expansions available on the eCloud.").append('\n');
-    builder.append("&7A total of &f").append(authorCount)
-        .append("&7 authors have contributed to the eCloud.").append('\n');
-
-    if (updateCount > 0) {
-      builder.append("&eYou have &f").append(updateCount)
-          .append(updateCount > 1 ? "&e expansions" : "&e expansion").append(" installed that ")
-          .append(updateCount > 1 ? "have an" : "has an").append(" update available.");
+        Msg.msg(sender, builder)
     }
-
-    Msg.msg(sender, builder.toString());
-  }
-
 }

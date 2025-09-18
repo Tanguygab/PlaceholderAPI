@@ -264,7 +264,7 @@ public final class CommandECloudExpansionList extends PlaceholderCommand {
     }
 
     expansions
-        .sort(plugin.getPlaceholderAPIConfig().getExpansionSort().orElse(ExpansionSort.LATEST));
+        .sort(plugin.getConfig().getExpansionSort().orElse(ExpansionSort.LATEST));
 
     if (!(sender instanceof Player) && params.size() < 2) {
       final StringBuilder builder = new StringBuilder();

@@ -17,12 +17,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.expansion
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
-
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+/**
+ * Classes implementing this interface will have a [clear void][.clear] that is called
+ * by PlaceholderAPI whenever the [PlaceholderExpansion][PlaceholderExpansion]
+ * is unregistered.
+ *
+ *
+ * This allows you to execute things such as clearing internal caches, saving data to files, etc.
+ *
+ * @author Ryan McCarthy
+ */
+interface Cacheable {
+    /**
+     * Called when the implementing class is unregistered from PlaceholderAPI
+     */
+    fun clear()
 }

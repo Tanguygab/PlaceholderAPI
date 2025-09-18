@@ -17,12 +17,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.expansion
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+/**
+ * Classes implementing this interface will have a [cleanup void][.cleanup] that is
+ * called by PlaceholderAPI whenever a Player leaves the server.
+ *
+ *
+ * This can be useful for cases where you keep data of the player in a cache or similar
+ * and want to free up space whenever they leave.
+ *
+ * @author Ryan McCarthy
+ */
+interface Cleanable {
+    /**
+     * Called when a player leaves the server
+     *
+     * @param p (@link Player} who left the server
+     */
+    fun cleanup(p: Player)
 }

@@ -17,12 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.expansion
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
-
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+@Deprecated("")
+class Version(private val version: String? = "unknown", val isSpigot: Boolean) {
+    fun compareTo(version: String): Boolean {
+        return version.equals(version, ignoreCase = true)
+    }
 }

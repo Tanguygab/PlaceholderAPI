@@ -17,12 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import org.bukkit.OfflinePlayer
+import org.bukkit.entity.Player
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+abstract class PlaceholderHook {
+    open fun onRequest(player: OfflinePlayer?, params: String): String? = onPlaceholderRequest(player as? Player, params)
+
+    open fun onPlaceholderRequest(player: Player?, params: String): String? = null
 }

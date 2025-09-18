@@ -17,61 +17,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.util
 
-package me.clip.placeholderapi.util;
+import java.io.File
+import java.io.IOException
+import java.net.URLClassLoader
+import java.util.jar.JarEntry
+import java.util.jar.JarInputStream
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+object FileUtil {
+    @Throws(IOException::class, ClassNotFoundException::class)
+    fun <T> findClass(
+        file: File,
+        clazz: Class<T>
+    ): Class<out T>? {
+        if (!file.exists()) return null
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
+        val jar = file.toURI().toURL()
+        val loader = URLClassLoader(arrayOf(jar), clazz.getClassLoader())
+        val matches = mutableListOf<String>()
+        val classes = ArrayList<Class<out T?>?>()
 
-public class FileUtil {
+        JarInputStream(jar.openStream()).use {
+            var entry: JarEntry?
+            while ((it.nextJarEntry.also { entry = it }) != null) {
+                val name = entry!!.name
+                if (name.isEmpty() || !name.endsWith(".class")) continue
 
-  @Nullable
-  public static <T> Class<? extends T> findClass(@NotNull final File file,
-      @NotNull final Class<T> clazz) throws IOException, ClassNotFoundException {
-    if (!file.exists()) {
-      return null;
-    }
-
-    final URL jar = file.toURI().toURL();
-    final URLClassLoader loader = new URLClassLoader(new URL[]{jar}, clazz.getClassLoader());
-    final List<String> matches = new ArrayList<>();
-    final List<Class<? extends T>> classes = new ArrayList<>();
-
-    try (final JarInputStream stream = new JarInputStream(jar.openStream())) {
-      JarEntry entry;
-      while ((entry = stream.getNextJarEntry()) != null) {
-        final String name = entry.getName();
-        if (name.isEmpty() || !name.endsWith(".class")) {
-          continue;
+                matches.add(name.substring(0, name.lastIndexOf('.')).replace('/', '.'))
+            }
+            for (match in matches) {
+                try {
+                    val loaded = loader.loadClass(match)
+                    if (clazz.isAssignableFrom(loaded)) {
+                        classes.add(loaded.asSubclass(clazz))
+                    }
+                } catch (_: NoClassDefFoundError) {}
+            }
         }
-
-        matches.add(name.substring(0, name.lastIndexOf('.')).replace('/', '.'));
-      }
-
-      for (final String match : matches) {
-        try {
-          final Class<?> loaded = loader.loadClass(match);
-          if (clazz.isAssignableFrom(loaded)) {
-            classes.add(loaded.asSubclass(clazz));
-          }
-        } catch (final NoClassDefFoundError ignored) {
+        if (classes.isEmpty()) {
+            loader.close()
+            return null
         }
-      }
+        return classes[0]
     }
-    if (classes.isEmpty()) {
-        loader.close();
-        return null;
-    }
-    return classes.get(0);
-  }
-
 }

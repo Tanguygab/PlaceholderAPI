@@ -17,12 +17,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.listeners
 
 import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import org.bukkit.event.EventHandler
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
+import org.bukkit.event.server.ServerLoadEvent
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+class ServerLoadEventListener(private val plugin: PlaceholderAPIPlugin) : Listener {
+
+    init {
+        plugin.server.pluginManager.registerEvents(this, plugin)
+    }
+
+    @EventHandler
+    fun onServerLoad(e: ServerLoadEvent) {
+        HandlerList.unregisterAll(this)
+        plugin.localExpansionManager.load(plugin.server.consoleSender)
+    }
 }

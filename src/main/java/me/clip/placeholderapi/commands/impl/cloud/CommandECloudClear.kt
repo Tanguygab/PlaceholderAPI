@@ -17,30 +17,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.cloud
 
-package me.clip.placeholderapi.commands.impl.cloud;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-
-public final class CommandECloudClear extends PlaceholderCommand {
-
-  public CommandECloudClear() {
-    super("clear");
-  }
-
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    plugin.getCloudExpansionManager().clean();
-    Msg.msg(sender,
-        "&aThe eCloud cache has been cleared!");
-  }
-
+class CommandECloudClear : PlaceholderCommand("clear") {
+    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {
+        plugin.cloudExpansionManager.clean()
+        Msg.msg(sender, "&aThe eCloud cache has been cleared!")
+    }
 }

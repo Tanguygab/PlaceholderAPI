@@ -17,33 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.local
 
-package me.clip.placeholderapi.commands.impl.local;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-
-public final class CommandHelp extends PlaceholderCommand {
-
-  public CommandHelp() {
-    super("help");
-  }
-
-
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    final PluginDescriptionFile description = plugin.getDescription();
-
-    Msg.msg(sender,
-        "&b&lPlaceholderAPI &8- &7Help Menu &8- &7(&f" + description.getVersion() + "&7)",
+class CommandHelp : PlaceholderCommand("help") {
+    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = Msg.msg(
+        sender,
+        "&b&lPlaceholderAPI &8- &7Help Menu &8- &7(&f" + plugin.description.version + "&7)",
         " ",
         "&b/papi &fbcparse &9<me|--null|player name> <message>",
         "  &7&oParse a message with placeholders and broadcast it",
@@ -66,7 +50,6 @@ public final class CommandHelp extends PlaceholderCommand {
         "&b/papi &funregister &9<expansion name>",
         "  &7&oUnregister an expansion by name",
         "&b/papi &fversion",
-        "  &7&oView plugin info/version");
-  }
-
+        "  &7&oView plugin info/version"
+    )
 }

@@ -17,12 +17,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.configuration
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import me.clip.placeholderapi.expansion.cloud.CloudExpansion
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+enum class ExpansionSort(private val comparator: Comparator<CloudExpansion>) : Comparator<CloudExpansion> {
+
+    NAME(Comparator.comparing<CloudExpansion, String> { it.name }),
+    AUTHOR(Comparator.comparing<CloudExpansion, String> { it.author }),
+    LATEST(Comparator.comparing<CloudExpansion, Long> { it.lastUpdate }.reversed());
+
+    override fun compare(expansion1: CloudExpansion, expansion2: CloudExpansion) = comparator.compare(expansion1, expansion2)
 }

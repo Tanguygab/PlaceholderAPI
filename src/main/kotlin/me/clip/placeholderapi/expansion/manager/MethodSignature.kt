@@ -17,12 +17,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.expansion.manager
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+class MethodSignature(val name: String, val params: Array<Class<*>>) {
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o !is MethodSignature) return false
+        return name == o.name && params.contentEquals(o.params)
+    }
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+    override fun hashCode() = 31 * name.hashCode() + params.contentHashCode()
 }

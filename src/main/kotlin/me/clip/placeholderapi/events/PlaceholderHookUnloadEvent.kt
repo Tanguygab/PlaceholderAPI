@@ -17,12 +17,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.events
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import me.clip.placeholderapi.PlaceholderHook
+import org.bukkit.event.Event
+import org.bukkit.event.HandlerList
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+@Deprecated("This event is no longer used.")
+class PlaceholderHookUnloadEvent(val hookName: String, val placeholderHook: PlaceholderHook) : Event() {
+
+    fun getHandlers() = HANDLERS
+
+    companion object {
+        private val HANDLERS = HandlerList()
+    }
 }

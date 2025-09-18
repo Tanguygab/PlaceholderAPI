@@ -17,36 +17,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.local
 
-package me.clip.placeholderapi.commands.impl.local;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandVersion : PlaceholderCommand("version") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        val description = plugin.description
 
-public final class CommandVersion extends PlaceholderCommand {
-
-  public CommandVersion() {
-    super("version");
-  }
-
-
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    final PluginDescriptionFile description = plugin.getDescription();
-
-    Msg.msg(sender,
-        "&b&lPlaceholderAPI &7(&f" + description.getVersion() + "&7)",
-        "&7Author: &f" + description.getAuthors(),
-        "&7PAPI Commands: &b/papi &fhelp",
-        "&7eCloud Commands&8: &b/papi &fecloud");
-  }
-
+        Msg.msg(
+            sender,
+            "&b&lPlaceholderAPI &7(&f" + description.version + "&7)",
+            "&7Author: &f" + description.authors,
+            "&7PAPI Commands: &b/papi &fhelp",
+            "&7eCloud Commands&8: &b/papi &fecloud"
+        )
+    }
 }

@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
+    kotlin("jvm") version "2.2.20-RC2"
     `java-library`
     `maven-publish`
     id("com.github.hierynomus.license") version "0.16.1"
@@ -27,7 +28,7 @@ dependencies {
     implementation("org.bstats:bstats-bukkit:3.0.1")
     implementation("net.kyori:adventure-platform-bukkit:4.3.3")
 
-    //compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
     compileOnly("dev.folia:folia-api:1.20.1-R0.1-SNAPSHOT")
     compileOnlyApi("org.jetbrains:annotations:23.0.0")
 
@@ -132,4 +133,8 @@ configurations {
     testImplementation {
         extendsFrom(compileOnly.get())
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }

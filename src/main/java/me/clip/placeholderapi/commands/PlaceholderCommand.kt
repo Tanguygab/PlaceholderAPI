@@ -17,92 +17,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands
 
-package me.clip.placeholderapi.commands;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import org.bukkit.command.CommandSender
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Stream;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+abstract class PlaceholderCommand protected constructor(val label: String, vararg alias: String) {
+    val alias = setOf(alias)
+    var permission = "placeholderapi.$label"
 
-public abstract class PlaceholderCommand {
+    val labels = alias.toMutableList().also { it.add(label) }.toList()
 
-  @NotNull
-  private final String label;
-  @NotNull
-  private final Set<String> alias;
+    open fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {}
+    open fun complete(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>, suggestions: List<String>) {}
 
-  @Nullable
-  private String permission;
+    companion object {
+        fun filterByPermission(
+            sender: CommandSender,
+            commands: Collection<PlaceholderCommand>
+        ) = commands.filter { sender.hasPermission(it.permission) }
 
-
-  protected PlaceholderCommand(@NotNull final String label, @NotNull final String... alias) {
-    this.label = label;
-    this.alias = Sets.newHashSet(alias);
-
-    setPermission("placeholderapi." + label);
-  }
-
-  @NotNull
-  public static Stream<PlaceholderCommand> filterByPermission(@NotNull final CommandSender sender,
-      @NotNull final Stream<PlaceholderCommand> commands) {
-    return commands.filter(
-        target -> target.getPermission() == null || sender.hasPermission(target.getPermission()));
-  }
-
-  public static void suggestByParameter(@NotNull final Stream<String> possible,
-      @NotNull final List<String> suggestions, @Nullable final String parameter) {
-    if (parameter == null) {
-      possible.forEach(suggestions::add);
-    } else {
-      possible.filter(suggestion -> suggestion.toLowerCase(Locale.ROOT).startsWith(parameter.toLowerCase(Locale.ROOT)))
-          .forEach(suggestions::add);
+        fun suggestByParameter(possible: List<String>, suggestions: MutableList<String>, parameter: String?) {
+            suggestions.addAll(possible.filter { parameter == null || it.startsWith(parameter, ignoreCase = true) })
+        }
     }
-  }
-
-  @NotNull
-  public final String getLabel() {
-    return label;
-  }
-
-  @NotNull
-  @Unmodifiable
-  public final Set<String> getAlias() {
-    return ImmutableSet.copyOf(alias);
-  }
-
-  @NotNull
-  @Unmodifiable
-  public final Set<String> getLabels() {
-    return ImmutableSet.<String>builder().add(label).addAll(alias).build();
-  }
-
-  @Nullable
-  public final String getPermission() {
-    return permission;
-  }
-
-  public void setPermission(@NotNull final String permission) {
-    this.permission = permission;
-  }
-
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-
-  }
-
-  public void complete(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params, @NotNull final List<String> suggestions) {
-
-  }
-
 }

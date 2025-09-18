@@ -17,12 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.util
 
-package me.clip.placeholderapi.util;
-
-public enum TimeFormat {
-  DAYS,
-  HOURS,
-  MINUTES,
-  SECONDS
+enum class TimeFormat {
+    DAYS,
+    HOURS,
+    MINUTES,
+    SECONDS
 }
