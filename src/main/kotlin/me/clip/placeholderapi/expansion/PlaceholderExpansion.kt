@@ -132,14 +132,14 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return true if this expansion is now registered with PlaceholderAPI
      */
-    fun register() = placeholderAPI.localExpansionManager.register(this)
+    open fun register() = placeholderAPI.localExpansionManager.register(this)
 
     /**
      * Attempt to unregister this PlaceholderExpansion
      *
      * @return true if this expansion is now unregistered with PlaceholderAPI
      */
-    fun unregister() = placeholderAPI.localExpansionManager.unregister(this)
+    open fun unregister() = placeholderAPI.localExpansionManager.unregister(this)
 
 
     /**

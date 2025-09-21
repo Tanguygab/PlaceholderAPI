@@ -40,6 +40,7 @@ object PlaceholderAPI {
      *
      * @return Regex Pattern of [%]([^%]+)[%]
      */
+    @JvmStatic
     val placeholderPattern: Pattern = Pattern.compile("%([^%]+)%")
 
     /**
@@ -47,6 +48,7 @@ object PlaceholderAPI {
      *
      * @return Regex Pattern of [{]([^{}]+)[}]
      */
+    @JvmStatic
     val bracketPlaceholderPattern: Pattern = Pattern.compile("[{]([^{}]+)[}]")
 
     /**
@@ -54,8 +56,8 @@ object PlaceholderAPI {
      *
      * @return Regex Pattern of [%](rel_)([^%]+)[%]
      */
-    val relationalPlaceholderPattern: Pattern = Pattern
-        .compile("%(rel_)([^%]+)%")
+    @JvmStatic
+    val relationalPlaceholderPattern: Pattern = Pattern.compile("%(rel_)([^%]+)%")
 
 
     // === Current API ===
@@ -67,6 +69,7 @@ object PlaceholderAPI {
      * @param text Text to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: String): String {
         return REPLACER_PERCENT.apply(text, player, PlaceholderAPIPlugin.getInstance().localExpansionManager::getExpansion)
     }
@@ -79,6 +82,7 @@ object PlaceholderAPI {
      * @param text List of Strings to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: List<String>) = text.map { setPlaceholders(player, it) }
 
     /**
@@ -89,6 +93,7 @@ object PlaceholderAPI {
      * @param text Text to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setPlaceholders(player: Player?, text: String) = setPlaceholders(player as OfflinePlayer?, text)
 
     /**
@@ -99,6 +104,7 @@ object PlaceholderAPI {
      * @param text List of Strings to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setPlaceholders(player: Player?, text: List<String>) = setPlaceholders(player as OfflinePlayer?, text)
 
     /**
@@ -109,6 +115,7 @@ object PlaceholderAPI {
      * @param text Text to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setBracketPlaceholders(player: OfflinePlayer?, text: String): String {
         return REPLACER_BRACKET.apply(text, player, PlaceholderAPIPlugin.getInstance().localExpansionManager::getExpansion)
     }
@@ -121,6 +128,7 @@ object PlaceholderAPI {
      * @param text List of Strings to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setBracketPlaceholders(player: OfflinePlayer?, text: List<String>) = text.map { setBracketPlaceholders(player, it) }
 
     /**
@@ -131,6 +139,7 @@ object PlaceholderAPI {
      * @param text Text to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setBracketPlaceholders(player: Player?, text: String) = setBracketPlaceholders(player as OfflinePlayer?, text)
 
     /**
@@ -141,6 +150,7 @@ object PlaceholderAPI {
      * @param text List of Strings to set the placeholder values in
      * @return String containing all translated placeholders
      */
+    @JvmStatic
     fun setBracketPlaceholders(player: Player?, text: List<String>) =
         setBracketPlaceholders(player as OfflinePlayer?, text)
 
@@ -153,6 +163,7 @@ object PlaceholderAPI {
      * @param text Text to parse the placeholders in
      * @return The text containing the parsed relational placeholders
      */
+    @JvmStatic
     fun setRelationalPlaceholders(one: Player?, two: Player?, text: String): String {
         var text = text
         val matcher = relationalPlaceholderPattern.matcher(text)
@@ -185,6 +196,7 @@ object PlaceholderAPI {
      * @param text text to parse the placeholder values to
      * @return The text containing the parsed relational placeholders
      */
+    @JvmStatic
     fun setRelationalPlaceholders(one: Player?, two: Player?, text: List<String>) = text.map { setRelationalPlaceholders(one, two, it) }
 
     /**
@@ -193,6 +205,7 @@ object PlaceholderAPI {
      * @param identifier The identifier to check
      * @return true if identifier is already registered
      */
+    @JvmStatic
     fun isRegistered(identifier: String) = PlaceholderAPIPlugin.getInstance().localExpansionManager.findExpansionByIdentifier(identifier) != null
 
     /**
@@ -200,6 +213,7 @@ object PlaceholderAPI {
      *
      * @return A Set of type String containing the identifiers of all registered expansions.
      */
+    @JvmStatic
     fun getRegisteredIdentifiers() = PlaceholderAPIPlugin.getInstance().localExpansionManager.identifiers.toSet()
 
     /**
@@ -208,6 +222,7 @@ object PlaceholderAPI {
      * @param text String to check
      * @return true if String contains any matches to the normal placeholder pattern, false otherwise
      */
+    @JvmStatic
     fun containsPlaceholders(text: String?) = text != null && placeholderPattern.matcher(text).find()
 
     /**
@@ -216,15 +231,18 @@ object PlaceholderAPI {
      * @param text String to check
      * @return true if String contains any matches to the bracket placeholder pattern, false otherwise
      */
+    @JvmStatic
     fun containsBracketPlaceholders(text: String?) = text != null && bracketPlaceholderPattern.matcher(text).find()
 
     // === Deprecated API ===
     @Deprecated("")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
+    @JvmStatic
     fun registerExpansion(expansion: PlaceholderExpansion) = expansion.register()
 
     @Deprecated("")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
+    @JvmStatic
     fun unregisterExpansion(expansion: PlaceholderExpansion) = expansion.unregister()
 
     /**
@@ -234,6 +252,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link LocalExpansionManager#getExpansions()} instead.")
+    @JvmStatic
     fun getPlaceholders() = PlaceholderAPIPlugin.getInstance().localExpansionManager.expansions.associateBy { it.identifier }
 
     /**
@@ -243,6 +262,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link PlaceholderExpansion} to register placeholders instead")
+    @JvmStatic
     fun registerPlaceholderHook(plugin: Plugin, placeholderHook: PlaceholderHook?): Boolean {
         Msg.warn(
             "Nag author(s) %s of plugin %s about their usage of the deprecated PlaceholderHook"
@@ -260,6 +280,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link PlaceholderExpansion} to register placeholders instead")
+    @JvmStatic
     fun registerPlaceholderHook(identifier: String, placeholderHook: PlaceholderHook): Boolean {
         Msg.warn(
             "$identifier is attempting to register placeholders via deprecated PlaceholderHook class."
@@ -274,6 +295,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link PlaceholderExpansion} to unregister placeholders instead")
+    @JvmStatic
     fun unregisterPlaceholderHook(plugin: Plugin): Boolean {
         Msg.warn(
             ("Nag author(s) %s of plugin %s about their usage of the PlaceholderAPI class."
@@ -289,6 +311,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link PlaceholderExpansion} to unregister placeholders instead")
+    @JvmStatic
     fun unregisterPlaceholderHook(identifier: String?): Boolean {
         Msg.warn(
             "$identifier is attempting to unregister placeholders via PlaceholderAPI class."
@@ -303,6 +326,7 @@ object PlaceholderAPI {
      */
     @Deprecated("Will be removed in a future release.")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
+    @JvmStatic
     fun registeredPlaceholderPlugins() = getRegisteredIdentifiers()
 
     /**
@@ -310,6 +334,7 @@ object PlaceholderAPI {
      */
     @Deprecated("Will be removed in a future release.")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
+    @JvmStatic
     fun externalPlaceholderPlugins(): Set<String>? = null
 
     /**
@@ -321,6 +346,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link #setPlaceholders(OfflinePlayer, String)} instead")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: String, pattern: Pattern, colorize: Boolean) =
         setPlaceholders(player, text)
 
@@ -333,6 +359,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Please use {@link #setPlaceholders(OfflinePlayer, List)} instead")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: List<String>, pattern: Pattern, colorize: Boolean) =
         setPlaceholders(player, text)
 
@@ -344,6 +371,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, List)} instead.")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: List<String>, colorize: Boolean) = setPlaceholders(player, text)
 
     /**
@@ -354,6 +382,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, List)} instead.")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: List<String>, pattern: Pattern) = setPlaceholders(player, text)
 
     /**
@@ -364,7 +393,8 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Will be removed in a future release.")
-    fun setPlaceholders(player: Player?, text: String, colorize: Boolean) = PlaceholderAPI.setPlaceholders(player, text)
+    @JvmStatic
+    fun setPlaceholders(player: Player?, text: String, colorize: Boolean) = setPlaceholders(player, text)
 
     /**
      * @param player The offline player to parse the placeholders against
@@ -374,7 +404,8 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Will be removed in a future release.")
-    fun setPlaceholders(player: Player?, text: List<String>, colorize: Boolean) = PlaceholderAPI.setPlaceholders(player, text)
+    @JvmStatic
+    fun setPlaceholders(player: Player?, text: List<String>, colorize: Boolean) = setPlaceholders(player, text)
 
     /**
      * @param player The offline player to parse the placeholders against
@@ -384,6 +415,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, String)} instead.")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: String, colorize: Boolean) = setPlaceholders(player, text)
 
     /**
@@ -394,6 +426,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, String)} instead.")
+    @JvmStatic
     fun setPlaceholders(player: OfflinePlayer?, text: String, pattern: Pattern) = setPlaceholders(player, text)
 
     /**
@@ -404,6 +437,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, List)} instead.")
+    @JvmStatic
     fun setBracketPlaceholders(player: OfflinePlayer?, text: List<String>, colorize: Boolean) =
         setBracketPlaceholders(player, text)
 
@@ -415,6 +449,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, String)} instead.")
+    @JvmStatic
     fun setBracketPlaceholders(player: OfflinePlayer?, text: String, colorize: Boolean) =
         setBracketPlaceholders(player, text)
 
@@ -426,7 +461,8 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Will be removed in a future release.")
-    fun setBracketPlaceholders(player: Player?, text: String, colorize: Boolean) = PlaceholderAPI.setBracketPlaceholders(player, text)
+    @JvmStatic
+    fun setBracketPlaceholders(player: Player?, text: String, colorize: Boolean) = setBracketPlaceholders(player, text)
 
     /**
      * @param player The offline player to parse the placeholders against
@@ -436,7 +472,8 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Will be removed in a future release.")
-    fun setBracketPlaceholders(player: Player?, text: List<String>, colorize: Boolean) = PlaceholderAPI.setBracketPlaceholders(player, text)
+    @JvmStatic
+    fun setBracketPlaceholders(player: Player?, text: List<String>, colorize: Boolean) = setBracketPlaceholders(player, text)
 
     /**
      * set relational placeholders in the text specified placeholders are matched with the pattern
@@ -450,6 +487,7 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setPlaceholders(OfflinePlayer, String)} instead.")
+    @JvmStatic
     fun setRelationalPlaceholders(one: Player?, two: Player?, text: String, colorize: Boolean) = setRelationalPlaceholders(one, two, text)
 
     /**
@@ -464,5 +502,6 @@ object PlaceholderAPI {
      */
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
     @Deprecated("Use {@link #setRelationalPlaceholders(Player, Player, List)} instead.")
+    @JvmStatic
     fun setRelationalPlaceholders(one: Player?, two: Player?, text: List<String>, colorize: Boolean) = setRelationalPlaceholders(one, two, text)
 }
