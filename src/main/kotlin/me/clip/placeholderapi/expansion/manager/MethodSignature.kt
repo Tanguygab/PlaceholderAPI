@@ -20,10 +20,10 @@
 package me.clip.placeholderapi.expansion.manager
 
 class MethodSignature(val name: String, val params: Array<Class<*>>) {
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o !is MethodSignature) return false
-        return name == o.name && params.contentEquals(o.params)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MethodSignature) return false
+        return name == other.name && params.contentEquals(other.params)
     }
 
     override fun hashCode() = 31 * name.hashCode() + params.contentHashCode()

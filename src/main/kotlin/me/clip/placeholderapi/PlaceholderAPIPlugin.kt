@@ -39,7 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.text.SimpleDateFormat
 
 /**
- * Yes I have a shit load of work to do...
+ * Yes I have a shitload of work to do...
  *
  * @author Ryan McCarthy
  */
@@ -50,7 +50,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
      *
      * @return PlaceholderAPIConfig instance
      */
-    val config = PlaceholderAPIConfig(this)
+    val placeholderAPIConfig = PlaceholderAPIConfig(this)
 
     val localExpansionManager = LocalExpansionManager(this)
     val cloudExpansionManager = CloudExpansionManager(this)
@@ -72,8 +72,8 @@ class PlaceholderAPIPlugin : JavaPlugin() {
 
         adventure = BukkitAudiences.create(this)
 
-        if (config.isCloudEnabled) cloudExpansionManager.load()
-        if (config.checkUpdates) UpdateChecker(this).fetch()
+        if (placeholderAPIConfig.isCloudEnabled) cloudExpansionManager.load()
+        if (placeholderAPIConfig.checkUpdates) UpdateChecker(this).fetch()
     }
 
     override fun onDisable() {
@@ -94,7 +94,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
 
         localExpansionManager.load(sender)
 
-        if (config.isCloudEnabled) cloudExpansionManager.load()
+        if (placeholderAPIConfig.isCloudEnabled) cloudExpansionManager.load()
         else cloudExpansionManager.kill()
     }
 
@@ -103,33 +103,33 @@ class PlaceholderAPIPlugin : JavaPlugin() {
 
         PlaceholderCommandRouter(this).let {
             pluginCommand.setExecutor(it)
-            pluginCommand.setTabCompleter(it)
+            pluginCommand.tabCompleter = it
         }
     }
 
     private fun setupMetrics() {
         val metrics = Metrics(this, 438)
-        metrics.addCustomChart(SimplePie("using_expansion_cloud") { if (config.isCloudEnabled) "yes" else "no" })
+        metrics.addCustomChart(SimplePie("using_expansion_cloud") { if (placeholderAPIConfig.isCloudEnabled) "yes" else "no" })
 
         metrics.addCustomChart(SimplePie("using_spigot") { if (serverVersion.isSpigot) "yes" else "no" })
 
         metrics.addCustomChart(AdvancedPie("expansions_used") {
             val values = mutableMapOf<String, Int>()
             for (expansion in localExpansionManager.expansions) {
-                values.put(expansion.requiredPlugin ?: expansion.identifier, 1)
+                values[expansion.requiredPlugin ?: expansion.identifier] = 1
             }
             values
         })
     }
 
     private fun setupExpansions() {
-        plugin.server.pluginManager.registerEvents(localExpansionManager, this)
+        server.pluginManager.registerEvents(localExpansionManager, this)
 
         try {
             Class.forName("org.bukkit.event.server.ServerLoadEvent")
             ServerLoadEventListener(this)
         } catch (_: ClassNotFoundException) {
-            scheduler.runTaskLater(Runnable { localExpansionManager.load(plugin.server.consoleSender) }, 1)
+            scheduler.runTaskLater( { localExpansionManager.load(server.consoleSender) }, 1)
         }
     }
 
@@ -177,14 +177,14 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          *
          * @return string value of true
          */
-        fun booleanTrue() = INSTANCE.config.booleanTrue
+        fun booleanTrue() = INSTANCE.placeholderAPIConfig.booleanTrue
 
         /**
          * Get the configurable [String] value that should be returned when a boolean is false
          *
          * @return string value of false
          */
-        fun booleanFalse() = INSTANCE.config.booleanFalse
+        fun booleanFalse() = INSTANCE.placeholderAPIConfig.booleanFalse
 
         /**
          * Get the configurable [SimpleDateFormat] object that is used to parse time for
@@ -194,11 +194,11 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          */
         fun getDateFormat(): SimpleDateFormat {
             return try {
-                SimpleDateFormat(INSTANCE.config.dateFormat)
+                SimpleDateFormat(INSTANCE.placeholderAPIConfig.dateFormat)
             } catch (e: IllegalArgumentException) {
                 Msg.warn(
                     "Configured date format ('%s') is invalid! Defaulting to 'MM/dd/yy HH:mm:ss'",
-                    e, INSTANCE.config.dateFormat
+                    e, INSTANCE.placeholderAPIConfig.dateFormat
                 )
                 SimpleDateFormat("MM/dd/yy HH:mm:ss")
             }

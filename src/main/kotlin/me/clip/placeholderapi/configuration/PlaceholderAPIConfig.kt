@@ -35,7 +35,7 @@ class PlaceholderAPIConfig(private val plugin: PlaceholderAPIPlugin) {
     val isDebugMode = plugin.config.getBoolean("debug", false)
 
     fun getExpansionSort(): ExpansionSort? {
-        val option: String = plugin.config.getString("cloud_sorting", ExpansionSort.LATEST.name)
+        val option = getString("cloud_sorting", ExpansionSort.LATEST.name)
 
         return try {
             ExpansionSort.valueOf(option.uppercase())
@@ -45,8 +45,10 @@ class PlaceholderAPIConfig(private val plugin: PlaceholderAPIPlugin) {
     }
 
 
-    val dateFormat = plugin.config.getString("date_format", "MM/dd/yy HH:mm:ss")
+    val dateFormat = getString("date_format", "MM/dd/yy HH:mm:ss")
 
-    val booleanTrue = plugin.config.getString("boolean.true", "true")
-    val booleanFalse = plugin.config.getString("boolean.false", "false")
+    val booleanTrue = getString("boolean.true", "true")
+    val booleanFalse = getString("boolean.false", "false")
+
+    private fun getString(path: String, def: String) = plugin.config.getString(path, def) ?: def
 }

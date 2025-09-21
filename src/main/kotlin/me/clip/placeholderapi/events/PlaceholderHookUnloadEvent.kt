@@ -26,7 +26,7 @@ import org.bukkit.event.HandlerList
 @Deprecated("This event is no longer used.")
 class PlaceholderHookUnloadEvent(val hookName: String, val placeholderHook: PlaceholderHook) : Event() {
 
-    fun getHandlers() = HANDLERS
+    override fun getHandlers() = HANDLERS
 
     companion object {
         private val HANDLERS = HandlerList()

@@ -17,78 +17,53 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.cloud
 
-package me.clip.placeholderapi.commands.impl.cloud;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.cloud.CloudExpansion;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandECloudExpansionPlaceholders : PlaceholderCommand("placeholders") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        if (params.isEmpty()) {
+            Msg.msg(sender, "&cYou must specify the name of the expansion.")
+            return
+        }
 
-public final class CommandECloudExpansionPlaceholders extends PlaceholderCommand {
+        val expansion = plugin.cloudExpansionManager.findCloudExpansionByName(params[0])
+        if (expansion == null) {
+            Msg.msg(sender, "&cThere is no expansion with the name: &f" + params[0])
+            return
+        }
 
-  public CommandECloudExpansionPlaceholders() {
-    super("placeholders");
-  }
+        val placeholders = expansion.placeholders
+        if (placeholders.isNullOrEmpty()) {
+            Msg.msg(sender, "&cThe expansion specified does not have placeholders listed.")
+            return
+        }
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    if (params.isEmpty()) {
-      Msg.msg(sender,
-          "&cYou must specify the name of the expansion.");
-      return;
+        val partitions = placeholders.sorted().chunked(10)
+
+        Msg.msg(sender, "&6" + placeholders.size + "&7 placeholders: &a", partitions.joinToString("\n") { it.joinToString(", ") })
     }
 
-    final CloudExpansion expansion = plugin.getCloudExpansionManager()
-        .findCloudExpansionByName(params.get(0)).orElse(null);
-    if (expansion == null) {
-      Msg.msg(sender,
-          "&cThere is no expansion with the name: &f" + params.get(0));
-      return;
+    override fun complete(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>, suggestions: MutableList<String>
+    ) {
+        if (params.size > 1) return
+
+        val names = plugin.cloudExpansionManager
+            .getCloudExpansions()
+            .values
+            .map { it.name.replace(' ', '_') }
+
+        suggestByParameter(names, suggestions, if (params.isEmpty()) null else params.get(0))
     }
-
-    final List<String> placeholders = expansion.getPlaceholders();
-    if (placeholders == null || placeholders.isEmpty()) {
-      Msg.msg(sender,
-          "&cThe expansion specified does not have placeholders listed.");
-      return;
-    }
-
-    final List<List<String>> partitions = Lists
-        .partition(placeholders.stream().sorted().collect(Collectors.toList()), 10);
-
-    Msg.msg(sender,
-        "&6" + placeholders.size() + "&7 placeholders: &a",
-        partitions.stream().map(partition -> String.join(", ", partition))
-            .collect(Collectors.joining("\n")));
-
-  }
-
-  @Override
-  public void complete(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params, @NotNull final List<String> suggestions) {
-    if (params.size() > 1) {
-      return;
-    }
-
-    final Stream<String> names = plugin.getCloudExpansionManager()
-        .getCloudExpansions()
-        .values()
-        .stream()
-        .map(CloudExpansion::getName)
-        .map(name -> name.replace(' ', '_'));
-
-    suggestByParameter(names, suggestions, params.isEmpty() ? null : params.get(0));
-  }
-
 }

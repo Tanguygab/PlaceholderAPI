@@ -25,7 +25,11 @@ import me.clip.placeholderapi.util.Msg
 import org.bukkit.command.CommandSender
 
 class CommandECloudRefresh : PlaceholderCommand("refresh") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
         plugin.cloudExpansionManager.load()
         Msg.msg(sender, "&aThe eCloud manager has been refreshed!")
     }

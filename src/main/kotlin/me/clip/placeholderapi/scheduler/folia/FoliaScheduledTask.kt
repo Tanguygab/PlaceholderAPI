@@ -27,13 +27,15 @@ import me.clip.placeholderapi.scheduler.scheduling.tasks.MyScheduledTask
 
 class FoliaScheduledTask(private var task: ScheduledTask) : MyScheduledTask {
 
-    override fun cancel() = task.cancel()
+    override fun cancel() {
+        task.cancel()
+    }
 
     override fun isCancelled() = task.isCancelled
 
     override val owningPlugin = task.owningPlugin
 
-    override fun isCurrentlyRunning() {
+    override fun isCurrentlyRunning(): Boolean {
         val state = task.executionState
         return state === ScheduledTask.ExecutionState.RUNNING || state === ScheduledTask.ExecutionState.CANCELLED_RUNNING
     }

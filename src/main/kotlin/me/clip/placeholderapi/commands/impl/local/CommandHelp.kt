@@ -25,7 +25,11 @@ import me.clip.placeholderapi.util.Msg
 import org.bukkit.command.CommandSender
 
 class CommandHelp : PlaceholderCommand("help") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = Msg.msg(
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) = Msg.msg(
         sender,
         "&b&lPlaceholderAPI &8- &7Help Menu &8- &7(&f" + plugin.description.version + "&7)",
         " ",

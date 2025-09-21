@@ -23,6 +23,7 @@ import me.clip.placeholderapi.PlaceholderAPIPlugin
 import me.clip.placeholderapi.events.ExpansionRegisterEvent
 import me.clip.placeholderapi.events.ExpansionUnregisterEvent
 import me.clip.placeholderapi.events.ExpansionsLoadedEvent
+import me.clip.placeholderapi.expansion.Cacheable
 import me.clip.placeholderapi.expansion.Cleanable
 import me.clip.placeholderapi.expansion.Configurable
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
@@ -45,6 +46,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.server.PluginDisableEvent
+import java.util.stream.Stream
 
 class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener {
     val expansionsFolder = File(plugin.dataFolder, EXPANSIONS_FOLDER_NAME)
@@ -66,21 +68,30 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
     val identifiers: Set<String>
         get() {
             expansionsLock.lock()
-            return expansionsMap.keys.toSet()
-            expansionsLock.unlock()
+            try {
+                return expansionsMap.keys.toSet()
+            } finally {
+                expansionsLock.unlock()
+            }
         }
 
     val expansions: Set<PlaceholderExpansion>
         get() {
             expansionsLock.lock()
+            try {
             return expansionsMap.values.toSet()
-            expansionsLock.unlock()
+            } finally {
+                expansionsLock.unlock()
+            }
         }
 
     fun getExpansion(identifier: String): PlaceholderExpansion? {
         expansionsLock.lock()
-        return expansionsMap[identifier.lowercase()]
-        expansionsLock.unlock()
+        try {
+            return expansionsMap[identifier.lowercase()]
+        } finally {
+            expansionsLock.unlock()
+        }
     }
 
     fun findExpansionByName(name: String) = expansions.find { it.name.equals(name, ignoreCase = true) }
@@ -97,8 +108,8 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
             return null
         }
 
-        if (expansion.requiredPlugin.isNullOrEmpty()) {
-            if (!plugin.server.pluginManager.isPluginEnabled(expansion.requiredPlugin)) {
+        if (!expansion.requiredPlugin.isNullOrEmpty()) {
+            if (!plugin.server.pluginManager.isPluginEnabled(expansion.requiredPlugin!!)) {
                 Msg.warn(
                     "Cannot load expansion %s due to a missing plugin: %s", expansion.identifier,
                     expansion.requiredPlugin
@@ -181,7 +192,7 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
 
         expansionsLock.lock()
         try {
-            expansionsMap.put(identifier, expansion)
+            expansionsMap[identifier] = expansion
         } finally {
             expansionsLock.unlock()
         }
@@ -198,7 +209,7 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
         if (expansion is Taskable) expansion.start()
 
         // Check eCloud for updates only if the expansion is external
-        if (plugin.config.isCloudEnabled && expansion.expansionType === PlaceholderExpansion.Type.EXTERNAL) {
+        if (plugin.placeholderAPIConfig.isCloudEnabled && expansion.expansionType === PlaceholderExpansion.Type.EXTERNAL) {
             val cloudExpansion = plugin.cloudExpansionManager.findCloudExpansionByName(identifier)
             if (cloudExpansion != null) {
                 cloudExpansion.hasExpansion = true
@@ -220,7 +231,7 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
         if (expansion is Taskable) expansion.stop()
         if (expansion is Cacheable) expansion.clear()
 
-        if (plugin.config.isCloudEnabled) {
+        if (plugin.placeholderAPIConfig.isCloudEnabled) {
             plugin.cloudExpansionManager.findCloudExpansionByName(expansion.name)?.apply {
                 hasExpansion = false
                 shouldUpdate = false
@@ -233,48 +244,46 @@ class LocalExpansionManager(private val plugin: PlaceholderAPIPlugin) : Listener
     private fun registerAll(sender: CommandSender) {
         Msg.info("Placeholder expansion registration initializing...")
 
-        Futures.onMainThread<List<Class<out PlaceholderExpansion>?>>(
-            plugin,
-            findExpansionsOnDisk(),
-            { classes: List<Class<out PlaceholderExpansion>?>, exception: Throwable? ->
-                if (exception != null) {
-                    Msg.severe("Failed to load class files of expansion.", exception)
-                    return@onMainThread
-                }
-                val registered = classes.filterNotNull().mapNotNull { register(it) }
+        Futures.onMainThread(plugin, findExpansionsOnDisk()) { classes: List<Class<out PlaceholderExpansion>?>, exception: Throwable? ->
+            if (exception != null) {
+                Msg.severe("Failed to load class files of expansion.", exception)
+                return@onMainThread
+            }
+            val registered = classes.filterNotNull().mapNotNull { register(it) }
 
-                val needsUpdate = registered.mapNotNull { plugin.cloudExpansionManager.findCloudExpansionByName(it.name) }.count { it.shouldUpdate }
+            val needsUpdate = registered.mapNotNull { plugin.cloudExpansionManager.findCloudExpansionByName(it.name) }
+                .count { it.shouldUpdate }
 
-                val message = StringBuilder(if (registered.isEmpty()) "&6" else "&a")
-                    .append(registered.size)
-                    .append(" placeholder hook(s) registered!")
+            val message = StringBuilder(if (registered.isEmpty()) "&6" else "&a")
+                .append(registered.size)
+                .append(" placeholder hook(s) registered!")
 
-                if (needsUpdate > 0) {
-                    message.append(" &6")
-                        .append(needsUpdate)
-                        .append(" placeholder hook(s) have an update available.")
-                }
+            if (needsUpdate > 0) {
+                message.append(" &6")
+                    .append(needsUpdate)
+                    .append(" placeholder hook(s) have an update available.")
+            }
 
 
-                Msg.msg(sender, message.toString())
-                plugin.server.pluginManager.callEvent(ExpansionsLoadedEvent(registered))
-            })
+            Msg.msg(sender, message.toString())
+            plugin.server.pluginManager.callEvent(ExpansionsLoadedEvent(registered))
+        }
     }
 
     private fun unregisterAll() = expansions.filterNot { it.persist }.forEach { it.unregister() }
 
     fun findExpansionsOnDisk(): CompletableFuture<List<Class<out PlaceholderExpansion>?>> {
-        val files = expansionsFolder.listFiles { dir: File, name: String -> name.endsWith(".jar") }
+        val files = expansionsFolder.listFiles { _: File, name: String -> name.endsWith(".jar") }
         if (files == null) return CompletableFuture.completedFuture(listOf())
 
-        return files.stream()
+        return Stream.of(*files)
             .map { findExpansionInFile(it) }
-            .collect(Futures.collector<Class<out PlaceholderExpansion>?>())
+            .collect(Futures.collector())
     }
 
     fun findExpansionInFile(file: File) = CompletableFuture.supplyAsync {
         try {
-            val expansionClass = FileUtil.findClass<PlaceholderExpansion?>(file, PlaceholderExpansion::class.java)
+            val expansionClass = FileUtil.findClass(file, PlaceholderExpansion::class.java)
 
             if (expansionClass == null) {
                 Msg.severe(

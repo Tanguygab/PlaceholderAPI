@@ -17,54 +17,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.util
 
-package me.clip.placeholderapi.util;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.IntStream.range;
-
-import java.util.List;
-import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * For the record, I am not sorry.
  */
-public final class Format {
+object Format {
+    fun tablify(align: Align, rows: List<List<String>>
+    ): MutableList<String> {
+        val format = buildFormat(align, findSpacing(rows))
+        return rows
+            .map { String.format(format, *it.toTypedArray()).substring(if (align == Align.RIGHT) 2 else 0) }
+            .toMutableList()
+    }
 
-  private Format() {}
+    private fun buildFormat(align: Align, spacing: List<Int>) = spacing.joinToString { "%" + (if (align == Align.LEFT) "-" else "") + (it + 2) + "s" }
 
-  @NotNull
-  public static Optional<List<String>> tablify(@NotNull final Align align,
-      @NotNull final List<List<String>> rows) {
-    return findSpacing(rows)
-        .map(spacing -> buildFormat(align, spacing))
-        .map(format -> rows.stream()
-            .map(
-                row -> String.format(format, row.toArray()).substring(align == Align.RIGHT ? 2 : 0))
-            .collect(toList()));
-  }
+    private fun findSpacing(rows: List<List<String>>) = rows
+        .map { row -> row.map { it.length } }
+        .reduce { l, r -> (0 ..< min(l.size, r.size)).map { max(l[it], r[it]) } }
 
-  @NotNull
-  private static String buildFormat(@NotNull final Align align, final int[] spacing) {
-    return stream(spacing)
-        .mapToObj(space -> "%" + (align == Align.LEFT ? "-" : "") + (space + 2) + "s")
-        .collect(joining());
-  }
-
-  @NotNull
-  private static Optional<int[]> findSpacing(@NotNull final List<List<String>> rows) {
-    return rows.stream()
-        .map(row -> row.stream().mapToInt(String::length).toArray())
-        .reduce((l, r) -> range(0, min(l.length, r.length)).map(i -> max(l[i], r[i])).toArray());
-  }
-
-  public enum Align {
-    LEFT, RIGHT
-  }
-
+    enum class Align {
+        LEFT, RIGHT
+    }
 }

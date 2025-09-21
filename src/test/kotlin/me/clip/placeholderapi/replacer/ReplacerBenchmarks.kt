@@ -17,12 +17,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package me.clip.placeholderapi.commands.impl.local
+package me.clip.placeholderapi.replacer
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin
-import me.clip.placeholderapi.commands.PlaceholderCommand
-import org.bukkit.command.CommandSender
+import me.clip.placeholderapi.Values
+import org.openjdk.jmh.annotations.Benchmark
 
-class CommandReload : PlaceholderCommand("reload") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) = plugin.reloadConf(sender)
+class ReplacerBenchmarks {
+    @Benchmark
+    fun measureCharsReplacerSmallText() {
+        Values.CHARS_REPLACER.apply(Values.SMALL_TEXT, null) { o: Any? -> Values.PLACEHOLDERS.get(o) }
+    }
+
+    @Benchmark
+    fun measureCharsReplacerLargeText() {
+        Values.CHARS_REPLACER.apply(Values.LARGE_TEXT, null) { o: Any? -> Values.PLACEHOLDERS.get(o) }
+    }
 }

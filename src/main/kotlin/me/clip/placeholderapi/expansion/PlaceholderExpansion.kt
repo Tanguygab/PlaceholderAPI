@@ -77,21 +77,29 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return [.getIdentifier] by default, name of this expansion if specified
      */
-    val name = identifier
+    open val name = identifier
+
+    // === Deprecated API ===
+    /**
+     * @return The plugin name.
+     */
+    @Deprecated("As of versions greater than 2.8.7, use {@link #requiredPlugin}")
+    @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
+    open val plugin: String? = null
 
     /**
      * The name of the plugin that this expansion hooks into. by default will null
      *
      * @return plugin name that this expansion requires to function
      */
-    val requiredPlugin = plugin
+    open val requiredPlugin = plugin
 
     /**
      * The placeholders associated with this expansion
      *
      * @return placeholder list that this expansion provides
      */
-    val placeholders = listOf<String>()
+    open val placeholders = listOf<String>()
 
 
     /**
@@ -101,8 +109,8 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return if this expansion should persist through placeholder reloads
      */
-    val persist = false
-
+    open val persist = false
+    open fun persist() = persist
 
     /**
      * Check if this placeholder identifier has already been registered
@@ -117,7 +125,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return true if this hook meets all the requirements to register
      */
-    fun canRegister() = requiredPlugin == null || placeholderAPI.server.pluginManager.getPlugin(this.requiredPlugin) != null
+    open fun canRegister() = requiredPlugin == null || placeholderAPI.server.pluginManager.getPlugin(requiredPlugin!!) != null
 
     /**
      * Attempt to register this PlaceholderExpansion
@@ -179,7 +187,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param def The default int to return when the ConfigurationSection returns null
      * @return int from the provided path or the default one provided
      */
-    fun getInt(path: String, def: Int) = if (configSection == null) def else configSection.getInt(path, def)
+    fun getInt(path: String, def: Int) = configSection?.getInt(path, def) ?: def
 
     /**
      * Gets the long relative to the [default ConfigurationSection][.getConfigSection] set
@@ -189,7 +197,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param def The default long to return when the ConfigurationSection returns null
      * @return long from the provided path or the default one provided
      */
-    fun getLong(path: String, def: Long) = if (configSection == null) def else configSection.getLong(path, def)
+    fun getLong(path: String, def: Long) = configSection?.getLong(path, def) ?: def
 
     /**
      * Gets the double relative to the [default ConfigurationSection][.getConfigSection] set
@@ -199,7 +207,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param def The default double to return when the ConfigurationSection returns null
      * @return double from the provided path or the default one provided
      */
-    fun getDouble(path: String, def: Double) = if (configSection == null) def else configSection.getDouble(path, def)
+    fun getDouble(path: String, def: Double) = configSection?.getDouble(path, def) ?: def
 
     /**
      * Gets the String relative to the [default ConfigurationSection][.getConfigSection] set
@@ -210,7 +218,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @return String from the provided path or the default one provided
      */
     @Contract("_, !null -> !null")
-    fun getString(path: String, def: String?) = if (configSection == null) def else configSection.getString(path, def)
+    fun getString(path: String, def: String?) = configSection?.getString(path, def) ?: def
 
     /**
      * Gets a String List relative to the [default ConfigurationSection][.getConfigSection] set
@@ -219,7 +227,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param path The path to get the String list from. This is relative to the default section
      * @return String list from the provided path or an empty list
      */
-    fun getStringList(path: String) = if (configSection == null) listOf<String>() else configSection.getStringList(path)
+    fun getStringList(path: String) = configSection?.getStringList(path) ?: listOf<String>()
 
     /**
      * Gets the boolean relative to the [default ConfigurationSection][.getConfigSection] set
@@ -229,7 +237,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param def The default boolean to return when the ConfigurationSection is null
      * @return boolean from the provided path or the default one provided
      */
-    fun getBoolean(path: String, def: Boolean) = if (configSection == null) def else configSection.getBoolean(path, def)
+    fun getBoolean(path: String, def: Boolean) = configSection?.getBoolean(path, def) ?: def
 
     /**
      * Whether the [default ConfigurationSection][.getConfigSection] contains the provided path
@@ -248,7 +256,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param level The Level at which the message should be logged with
      * @param msg The message to log
      */
-    fun log(level: Level, msg: String) = placeholderAPI.logger.log(level, "[" + this.name + "] " + msg)
+    fun log(level: Level, msg: String) = placeholderAPI.logger.log(level, "[$name] $msg")
 
     /**
      * Logs the provided message and Throwable with the provided Level in the console.
@@ -258,7 +266,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param msg The message to log
      * @param throwable The Throwable to log
      */
-    fun log(level: Level, msg: String, throwable: Throwable) = placeholderAPI.logger.log(level, "[" + this.name + "] " + msg, throwable)
+    fun log(level: Level, msg: String, throwable: Throwable) = placeholderAPI.logger.log(level, "[$name] $msg", throwable)
 
     /**
      * Logs the provided message with Level "info".
@@ -303,15 +311,15 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *  * Checks if the Object's Identifier, Author and version equal the one of this class
      *
      *
-     * @param o The Object to check
+     * @param other The Object to check
      * @return true or false depending on the above-mentioned checks
      */
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o !is PlaceholderExpansion) return false
-        return identifier == o.identifier
-                && author == o.author
-                && version == o.version
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PlaceholderExpansion) return false
+        return identifier == other.identifier
+                && author == other.author
+                && version == other.version
     }
 
     /**
@@ -322,26 +330,20 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
     override fun toString() = "PlaceholderExpansion[name: '$name', author: '$author', version: '$version', type: '$expansionType']"
 
     // === Deprecated API ===
-    /**
-     * @return The plugin name.
-     */
-    @Deprecated("As of versions greater than 2.8.7, use {@link #getRequiredPlugin()}")
-    @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
-    val plugin: String? = null
 
     /**
      * @return The description of the expansion.
      */
     @Deprecated("As of versions greater than 2.8.7, use the expansion cloud to show a description")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
-    val description: String? = null
+    open val description: String? = null
 
     /**
      * @return The link for the expansion.
      */
     @Deprecated("As of versions greater than 2.8.7, use the expansion cloud to display a link")
     @ApiStatus.ScheduledForRemoval(inVersion = "2.13.0")
-    val link: String? = null
+    open val link: String? = null
 
     enum class Type {
         /**

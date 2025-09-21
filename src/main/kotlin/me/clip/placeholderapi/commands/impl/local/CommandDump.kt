@@ -17,197 +17,152 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.local
 
-package me.clip.placeholderapi.commands.impl.local;
+import com.google.common.io.CharStreams
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.expansion.PlaceholderExpansion
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
+import java.io.File
+import java.io.IOException
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.logging.Level
 
-import com.google.common.io.CharStreams;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandDump : PlaceholderCommand("dump") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        postDump(makeDump(plugin)).whenComplete { key: String, exception: Throwable? ->
+            if (exception != null) {
+                plugin.logger.log(Level.WARNING, "failed to post dump details", exception)
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
+                Msg.msg(
+                    sender,
+                    "&cFailed to post dump details, check console."
+                )
+                return@whenComplete
+            }
+            Msg.msg(
+                sender,
+                "&aSuccessfully posted dump: $URL$key"
+            )
+        }
+    }
 
-public final class CommandDump extends PlaceholderCommand {
+    private fun postDump(dump: String): CompletableFuture<String> {
+        return CompletableFuture.supplyAsync {
+            try {
+                val connection = URL(URL + "documents").openConnection() as HttpURLConnection
+                connection.apply {
+                    setRequestMethod("POST")
+                    setRequestProperty("Content-Type", "text/plain; charset=utf-8")
+                    setDoOutput(true)
 
-  @NotNull
-  private static final String URL = "https://paste.helpch.at/";
+                    connect()
 
-  @NotNull
-  private static final Gson gson = new Gson();
+                    getOutputStream().use { it.write(dump.toByteArray(StandardCharsets.UTF_8)) }
+                }
+                connection.getInputStream().use { stream ->
+                    val json = CharStreams.toString(InputStreamReader(stream, StandardCharsets.UTF_8))
+                    return@supplyAsync gson.fromJson(json, JsonObject::class.java).get("key").asString
+                }
+            } catch (ex: IOException) {
+                throw CompletionException(ex)
+            }
+        }
+    }
 
-  @NotNull
-  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter
-      .ofLocalizedDateTime(FormatStyle.LONG)
-      .withLocale(Locale.US)
-      .withZone(ZoneId.of("UTC"));
+    private fun makeDump(plugin: PlaceholderAPIPlugin): String {
+        val builder = StringBuilder()
 
+        builder.append("Generated: ")
+            .append(DATE_FORMAT.format(Instant.now()))
+            .append("\n\n")
+            .append("PlaceholderAPI: ")
+            .append(plugin.description.version)
+            .append("\n\n")
+            .append("Expansions Registered:\n")
 
-  public CommandDump() {
-    super("dump");
-  }
+        val expansions = plugin.localExpansionManager
+            .expansions
+            .sortedWith(
+                Comparator.comparing(PlaceholderExpansion::identifier)
+                .thenComparing(PlaceholderExpansion::author)
+            )
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    postDump(makeDump(plugin)).whenComplete((key, exception) -> {
-      if (exception != null) {
-        plugin.getLogger().log(Level.WARNING, "failed to post dump details", exception);
+        var size = expansions.maxOfOrNull { it.identifier.length } ?: 0
 
-        Msg.msg(sender,
-            "&cFailed to post dump details, check console.");
-        return;
-      }
-
-      Msg.msg(sender,
-          "&aSuccessfully posted dump: " + URL + key);
-    });
-  }
-
-  @NotNull
-  private CompletableFuture<String> postDump(@NotNull final String dump) {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        final HttpURLConnection connection = ((HttpURLConnection) new URL(URL + "documents")
-            .openConnection());
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
-        connection.setDoOutput(true);
-
-        connection.connect();
-
-        try (final OutputStream stream = connection.getOutputStream()) {
-          stream.write(dump.getBytes(StandardCharsets.UTF_8));
+        for (expansion in expansions) {
+            builder.append("  ")
+                .append(String.format("%-" + size + "s", expansion.identifier))
+                .append(" [Author: ")
+                .append(expansion.author)
+                .append(", Version: ")
+                .append(expansion.version)
+                .append("]\n")
         }
 
-        try (final InputStream stream = connection.getInputStream()) {
-          final String json = CharStreams.toString(new InputStreamReader(stream, StandardCharsets.UTF_8));
-          return gson.fromJson(json, JsonObject.class).get("key").getAsString();
+        builder.append("\nExpansions Directory:\n")
+
+        val jars = plugin.localExpansionManager.expansionsFolder.list { _: File, name: String -> name.lowercase().endsWith(".jar") }
+
+        builder.append(jars?.joinToString { " $it\n" } ?: "  ¨[Warning]: Could not load jar files from expansions folder.")
+
+        builder.append('\n')
+
+        builder.append("Server Info: ")
+            .append(plugin.server.bukkitVersion)
+            .append('/')
+            .append(plugin.server.version)
+            .append("\n")
+
+        builder.append("Java Version: ")
+            .append(System.getProperty("java.version"))
+            .append("\n\n")
+
+        builder.append("Plugin Info:\n")
+
+        val plugins = plugin.server.pluginManager.plugins.sortedBy { it.name }
+
+        size = plugins.maxOfOrNull { it.name.length } ?: 0
+
+        for (other in plugins) {
+            builder.append("  ")
+                .append(String.format("%-" + size + "s", other.name))
+                .append(" [Authors: [")
+                .append(other.description.authors.joinToString(", "))
+                .append("], Version: ")
+                .append(other.description.version)
+                .append("]\n")
         }
-      } catch (final IOException ex) {
-        throw new CompletionException(ex);
-      }
-    });
-  }
 
-  @NotNull
-  private String makeDump(@NotNull final PlaceholderAPIPlugin plugin) {
-    final StringBuilder builder = new StringBuilder();
-
-    builder.append("Generated: ")
-        .append(DATE_FORMAT.format(Instant.now()))
-        .append("\n\n");
-
-    builder.append("PlaceholderAPI: ")
-        .append(plugin.getDescription().getVersion())
-        .append("\n\n");
-
-    builder.append("Expansions Registered:")
-        .append('\n');
-
-    final List<PlaceholderExpansion> expansions = plugin.getLocalExpansionManager()
-        .getExpansions()
-        .stream()
-        .sorted(
-            Comparator.comparing(PlaceholderExpansion::getIdentifier)
-                      .thenComparing(PlaceholderExpansion::getAuthor)
-        )
-        .collect(Collectors.toList());
-
-    int size = expansions.stream().map(e -> e.getIdentifier().length())
-        .max(Integer::compareTo)
-        .orElse(0);
-
-    for (final PlaceholderExpansion expansion : expansions) {
-      builder.append("  ")
-          .append(String.format("%-" + size + "s", expansion.getIdentifier()))
-          .append(" [Author: ")
-          .append(expansion.getAuthor())
-          .append(", Version: ")
-          .append(expansion.getVersion())
-          .append("]\n");
-
+        return builder.toString()
     }
 
-    builder.append('\n');
+    companion object {
+        private const val URL = "https://paste.helpch.at/"
 
-    builder.append("Expansions Directory:")
-        .append('\n');
+        private val gson = Gson()
 
-    final String[] jars = plugin.getLocalExpansionManager()
-        .getExpansionsFolder()
-        .list((dir, name) -> name.toLowerCase(Locale.ROOT).endsWith(".jar"));
-
-
-    if (jars == null) {
-      builder.append("  ¨[Warning]: Could not load jar files from expansions folder.");
-    } else {
-      for (final String jar : jars) {
-        builder.append("  ")
-            .append(jar)
-            .append('\n');
-      }
+        private val DATE_FORMAT = DateTimeFormatter
+            .ofLocalizedDateTime(FormatStyle.LONG)
+            .withLocale(Locale.US)
+            .withZone(ZoneId.of("UTC"))
     }
-
-    builder.append('\n');
-
-    builder.append("Server Info: ")
-        .append(plugin.getServer().getBukkitVersion())
-        .append('/')
-        .append(plugin.getServer().getVersion())
-        .append("\n");
-
-    builder.append("Java Version: ")
-        .append(System.getProperty("java.version"))
-        .append("\n\n");
-
-    builder.append("Plugin Info:")
-        .append('\n');
-
-    List<Plugin> plugins = Arrays.stream(plugin.getServer().getPluginManager().getPlugins())
-        .sorted(Comparator.comparing(Plugin::getName))
-        .collect(Collectors.toList());
-    
-    size = plugins.stream().map(pl -> pl.getName().length())
-        .max(Integer::compareTo)
-        .orElse(0);
-
-    for (final Plugin other : plugins) {
-      builder.append("  ")
-          .append(String.format("%-" + size + "s", other.getName()))
-          .append(" [Authors: [")
-          .append(String.join(", ", other.getDescription().getAuthors()))
-          .append("], Version: ")
-          .append(other.getDescription().getVersion())
-          .append("]")
-          .append("\n");
-    }
-
-    return builder.toString();
-  }
 }

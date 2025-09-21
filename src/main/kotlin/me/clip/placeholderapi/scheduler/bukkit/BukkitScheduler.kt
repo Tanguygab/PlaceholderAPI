@@ -66,7 +66,9 @@ class BukkitScheduler(val plugin: Plugin) : TaskScheduler {
     @Deprecated("")
     override fun runTaskTimerAsynchronously(plugin: Plugin, runnable: Runnable, delay: Long, period: Long) = BukkitScheduledTask(plugin.server.scheduler.runTaskTimerAsynchronously(plugin, runnable, delay, period))
 
-    override fun execute(runnable: Runnable) = plugin.server.scheduler.scheduleSyncDelayedTask(plugin, runnable)
+    override fun execute(runnable: Runnable) {
+        plugin.server.scheduler.scheduleSyncDelayedTask(plugin, runnable)
+    }
 
     override fun cancelTasks() = plugin.server.scheduler.cancelTasks(plugin)
 

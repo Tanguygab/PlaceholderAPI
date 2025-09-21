@@ -42,7 +42,7 @@ class ExpansionUnregisterEvent(
     val expansion: PlaceholderExpansion
 ) : Event() {
 
-    fun getHandlers()= HANDLERS
+    override fun getHandlers()= HANDLERS
 
     companion object {
         private val HANDLERS = HandlerList()

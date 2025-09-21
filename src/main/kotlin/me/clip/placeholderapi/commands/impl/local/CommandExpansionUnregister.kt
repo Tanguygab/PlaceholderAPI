@@ -17,61 +17,46 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.local
 
-package me.clip.placeholderapi.commands.impl.local;
+import me.clip.placeholderapi.PlaceholderAPI.getRegisteredIdentifiers
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import java.util.Optional;
-import me.clip.placeholderapi.PlaceholderAPI;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandExpansionUnregister : PlaceholderCommand("unregister") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        if (params.isEmpty()) {
+            Msg.msg(sender, "&cYou must specify the name of the expansion.")
+            return
+        }
 
-public final class CommandExpansionUnregister extends PlaceholderCommand {
+        val expansion = plugin.localExpansionManager.findExpansionByName(params[0])
+        if (expansion == null) {
+            Msg.msg(sender, "&cThere is no expansion loaded with the identifier: &f" + params[0])
+            return
+        }
 
-  public CommandExpansionUnregister() {
-    super("unregister");
-  }
+        val message = if (!expansion.unregister()) "&cFailed to unregister expansion: &f" else "&aSuccessfully unregistered expansion: &f"
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    if (params.isEmpty()) {
-      Msg.msg(sender,
-          "&cYou must specify the name of the expansion.");
-      return;
+        Msg.msg(sender, message + expansion.name)
     }
 
-    final Optional<PlaceholderExpansion> expansion = plugin.getLocalExpansionManager()
-        .findExpansionByName(params.get(0));
-    if (!expansion.isPresent()) {
-      Msg.msg(sender,
-          "&cThere is no expansion loaded with the identifier: &f" + params.get(0));
-      return;
+    override fun complete(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>, suggestions: MutableList<String>
+    ) {
+        if (params.size > 1) return
+
+        suggestByParameter(
+            getRegisteredIdentifiers(), suggestions,
+            if (params.isEmpty()) null else params[0]
+        )
     }
-
-    final String message = !expansion.get().unregister() ?
-        "&cFailed to unregister expansion: &f" :
-        "&aSuccessfully unregistered expansion: &f";
-
-    Msg.msg(sender, message + expansion.get().getName());
-  }
-
-  @Override
-  public void complete(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params, @NotNull final List<String> suggestions) {
-    if (params.size() > 1) {
-      return;
-    }
-
-    suggestByParameter(PlaceholderAPI.getRegisteredIdentifiers().stream(), suggestions,
-        params.isEmpty() ? null : params.get(0));
-  }
-
 }

@@ -28,5 +28,5 @@ import org.bukkit.plugin.Plugin
 //Thanks to Towny
 class PaperScheduler(plugin: Plugin) : FoliaScheduler(plugin) {
     // isGlobalThread does not exist on paper, match the bukkit task scheduler's behaviour.
-    fun isGlobalThread() = plugin.server.isPrimaryThread
+    override fun isGlobalThread() = plugin.server.isPrimaryThread
 }

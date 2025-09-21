@@ -29,7 +29,7 @@ abstract class PlaceholderCommand protected constructor(val label: String, varar
     val labels = alias.toMutableList().also { it.add(label) }.toList()
 
     open fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {}
-    open fun complete(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>, suggestions: List<String>) {}
+    open fun complete(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>, suggestions: MutableList<String>) {}
 
     companion object {
         fun filterByPermission(
@@ -37,7 +37,7 @@ abstract class PlaceholderCommand protected constructor(val label: String, varar
             commands: Collection<PlaceholderCommand>
         ) = commands.filter { sender.hasPermission(it.permission) }
 
-        fun suggestByParameter(possible: List<String>, suggestions: MutableList<String>, parameter: String?) {
+        fun suggestByParameter(possible: Collection<String>, suggestions: MutableList<String>, parameter: String?) {
             suggestions.addAll(possible.filter { parameter == null || it.startsWith(parameter, ignoreCase = true) })
         }
     }

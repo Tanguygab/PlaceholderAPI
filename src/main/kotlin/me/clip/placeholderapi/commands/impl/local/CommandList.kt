@@ -19,28 +19,30 @@
  */
 package me.clip.placeholderapi.commands.impl.local
 
-import com.google.common.collect.Lists
 import me.clip.placeholderapi.PlaceholderAPI
 import me.clip.placeholderapi.PlaceholderAPIPlugin
 import me.clip.placeholderapi.commands.PlaceholderCommand
 import me.clip.placeholderapi.util.Msg
 import org.bukkit.command.CommandSender
-import java.util.stream.Collectors
 
 class CommandList : PlaceholderCommand("list") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
         val identifiers = PlaceholderAPI.getRegisteredIdentifiers()
         if (identifiers.isEmpty()) {
             Msg.msg(sender, "&cThere are no placeholder hooks active!")
             return
         }
 
-        val partitions = Lists.partition(identifiers.stream().sorted().collect(Collectors.toList()), 10)
+        val partitions = identifiers.chunked(10)
 
         Msg.msg(
             sender,
             "&7A total of &f" + identifiers.size + "&7 placeholder hook(s) are active: &a",
-            partitions.map { it.joinToString("&7, &a") }.joinToString("\n")
+            partitions.joinToString("\n") { it.joinToString("&7, &a") }
         )
     }
 }

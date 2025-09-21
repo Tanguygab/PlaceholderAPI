@@ -45,7 +45,7 @@ class ExpansionsLoadedEvent(expansions: List<PlaceholderExpansion>) : Event() {
      */
     val expansions = expansions.toList()
 
-    fun getHandlers() = HANDLERS
+    override fun getHandlers() = HANDLERS
 
     companion object {
         private val HANDLERS = HandlerList()

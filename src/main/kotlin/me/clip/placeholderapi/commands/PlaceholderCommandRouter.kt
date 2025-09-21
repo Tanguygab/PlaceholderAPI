@@ -49,7 +49,7 @@ class PlaceholderCommandRouter(private val plugin: PlaceholderAPIPlugin) : Comma
         }
 
         val permission = target.permission
-        if (permission != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
+        if (!sender.hasPermission(permission)) {
             Msg.msg(sender, "&cYou do not have permission to do this!")
             return true
         }
@@ -60,7 +60,7 @@ class PlaceholderCommandRouter(private val plugin: PlaceholderAPIPlugin) : Comma
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
-        val suggestions = mutableListOf()
+        val suggestions = mutableListOf<String>()
 
         if (args.size > 1) {
             val target = commands[args[0].lowercase()]

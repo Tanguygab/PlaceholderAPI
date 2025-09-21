@@ -17,63 +17,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.util
 
-package me.clip.placeholderapi.util;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import org.bukkit.Bukkit
+import java.util.concurrent.CompletableFuture
+import java.util.stream.Collector
+import java.util.stream.Collectors
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+object Futures {
+    fun <T> onMainThread(
+        plugin: PlaceholderAPIPlugin,
+        future: CompletableFuture<T>,
+        consumer: (T, Throwable?) -> Unit
+    ) {
+        future.whenComplete { value: T, exception: Throwable? ->
+            if (Bukkit.isPrimaryThread()) consumer(value, exception)
+            else plugin.scheduler.runTask { consumer(value, exception) }
+        }
+    }
 
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
+    fun <T> collector(): Collector<CompletableFuture<T>, *, CompletableFuture<List<T>>> {
+        return Collectors.collectingAndThen(Collectors.toList()) { of(it) }
+    }
 
-public final class Futures {
+    fun <T> of(futures: Collection<CompletableFuture<T>>): CompletableFuture<List<T>> {
+        return CompletableFuture.allOf(*futures.toTypedArray()).thenApplyAsync { awaitCompletion(futures) }
+    }
 
-  private Futures() {}
-
-
-  public static <T> void onMainThread(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CompletableFuture<T> future,
-      @NotNull final BiConsumer<T, Throwable> consumer) {
-    future.whenComplete((value, exception) -> {
-      if (Bukkit.isPrimaryThread()) {
-        consumer.accept(value, exception);
-      } else {
-        plugin.getScheduler().runTask(() -> consumer.accept(value, exception));
-      }
-    });
-  }
-
-
-  @NotNull
-  public static <T> Collector<CompletableFuture<T>, ?, CompletableFuture<List<T>>> collector() {
-    return Collectors.collectingAndThen(Collectors.toList(), Futures::of);
-  }
-
-
-  @NotNull
-  public static <T> CompletableFuture<List<T>> of(
-      @NotNull final Stream<CompletableFuture<T>> futures) {
-    return of(futures.collect(Collectors.toList()));
-  }
-
-  @NotNull
-  public static <T> CompletableFuture<List<T>> of(
-      @NotNull final Collection<CompletableFuture<T>> futures) {
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-        .thenApplyAsync($ -> awaitCompletion(futures));
-  }
-
-  @NotNull
-  private static <T> List<T> awaitCompletion(
-      @NotNull final Collection<CompletableFuture<T>> futures) {
-    return futures.stream().map(CompletableFuture::join).collect(Collectors.toList());
-  }
-
+    private fun <T> awaitCompletion(futures: Collection<CompletableFuture<T>>) = futures.map { it.join() }
 }

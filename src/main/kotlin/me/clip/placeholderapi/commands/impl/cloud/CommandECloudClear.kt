@@ -24,21 +24,13 @@ import me.clip.placeholderapi.commands.PlaceholderCommand
 import me.clip.placeholderapi.util.Msg
 import org.bukkit.command.CommandSender
 
-class CommandECloudStatus : PlaceholderCommand("status") {
-    override fun evaluate(plugin: PlaceholderAPIPlugin, sender: CommandSender, alias: String, params: List<String>) {
-        val manager = plugin.cloudExpansionManager
-
-        val updateCount: Int = manager.getCloudUpdateCount()
-        val authorCount: Int = manager.getCloudExpansionAuthorCount()
-        val expansionCount: Int = manager.getCloudExpansions().size
-
-        var builder = "&bThere are &a$expansionCount&b expansions available on the eCloud.\n" +
-                "&7A total of &f$authorCount&7 authors have contributed to the eCloud.\n"
-
-        if (updateCount > 0) {
-            builder += "&eYou have &f$updateCount&e expansion${if (updateCount > 1) "s" else ""} installed that ${if (updateCount > 1) "have" else "has"} an update available."
-        }
-
-        Msg.msg(sender, builder)
+class CommandECloudClear : PlaceholderCommand("clear") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        plugin.cloudExpansionManager.clean()
+        Msg.msg(sender, "&aThe eCloud cache has been cleared!")
     }
 }

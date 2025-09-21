@@ -46,7 +46,7 @@ abstract class UniversalRunnable : Runnable {
     @Synchronized
     fun isCancelled(): Boolean {
         checkScheduled()
-        return task?.isCancelled()
+        return task!!.isCancelled()
     }
 
     /**

@@ -17,94 +17,70 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.local
 
-package me.clip.placeholderapi.commands.impl.local;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.expansion.PlaceholderExpansion
+import me.clip.placeholderapi.util.Futures
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
+import java.io.File
+import java.util.logging.Level
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.clip.placeholderapi.expansion.manager.LocalExpansionManager;
-import me.clip.placeholderapi.util.Futures;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandExpansionRegister : PlaceholderCommand("register") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        if (params.isEmpty()) {
+            Msg.msg(sender, "&cYou must specify the name of an expansion file.")
+            return
+        }
 
-public final class CommandExpansionRegister extends PlaceholderCommand {
+        val manager = plugin.localExpansionManager
 
-  public CommandExpansionRegister() {
-    super("register");
-  }
+        val file = File(manager.expansionsFolder, params[0])
+        if (!file.exists() || file.getParentFile() != manager.expansionsFolder) {
+            Msg.msg(sender, "&cThe file &f" + file.getName() + "&c doesn't exist!")
+            return
+        }
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    if (params.size() < 1) {
-      Msg.msg(sender,
-          "&cYou must specify the name of an expansion file.");
-      return;
+        Futures.onMainThread(plugin, manager.findExpansionInFile(file)) { clazz: Class<out PlaceholderExpansion>?, exception: Throwable? ->
+            if (exception != null) {
+                Msg.msg(sender, "&cFailed to find expansion in file: &f$file")
+
+                plugin.logger.log(Level.WARNING, "failed to find expansion in file: $file", exception)
+                return@onMainThread
+            }
+            if (clazz == null) {
+                Msg.msg(sender, "&cNo expansion class found in file: &f$file")
+                return@onMainThread
+            }
+
+            val expansion = manager.register(clazz)
+            if (expansion == null) {
+                Msg.msg(sender, "&cFailed to register expansion from &f" + params[0])
+                return@onMainThread
+            }
+            Msg.msg(sender, "&aSuccessfully registered expansion: &f" + expansion.name)
+        }
     }
 
-    final LocalExpansionManager manager = plugin.getLocalExpansionManager();
+    override fun complete(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>, suggestions: MutableList<String>
+    ) {
+        if (params.size > 1) return
 
-    final File file = new File(manager.getExpansionsFolder(), params.get(0));
-    if (!file.exists() || !file.getParentFile().equals(manager.getExpansionsFolder())) {
-      Msg.msg(sender,
-          "&cThe file &f" + file.getName() + "&c doesn't exist!");
-      return;
+        val fileNames = plugin.localExpansionManager.expansionsFolder.list { _: File, name: String -> name.endsWith(".jar") }
+        if (fileNames == null || fileNames.size == 0) return
+
+        suggestByParameter(
+            fileNames.toList(), suggestions,
+            if (params.isEmpty()) null else params[0]
+        )
     }
-
-    Futures.onMainThread(plugin, manager.findExpansionInFile(file), (clazz, exception) -> {
-      if (exception != null) {
-        Msg.msg(sender,
-            "&cFailed to find expansion in file: &f" + file);
-
-        plugin.getLogger()
-            .log(Level.WARNING, "failed to find expansion in file: " + file, exception);
-        return;
-      }
-
-      if (clazz == null) {
-        Msg.msg(sender,
-            "&cNo expansion class found in file: &f" + file);
-        return;
-      }
-
-      final Optional<PlaceholderExpansion> expansion = manager.register(clazz);
-      if (!expansion.isPresent()) {
-        Msg.msg(sender,
-            "&cFailed to register expansion from &f" + params.get(0));
-        return;
-      }
-
-      Msg.msg(sender,
-          "&aSuccessfully registered expansion: &f" + expansion.get().getName());
-
-    });
-  }
-
-  @Override
-  public void complete(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params, @NotNull final List<String> suggestions) {
-    if (params.size() > 1) {
-      return;
-    }
-
-    final String[] fileNames = plugin.getLocalExpansionManager().getExpansionsFolder()
-        .list((dir, name) -> name.endsWith(".jar"));
-    if (fileNames == null || fileNames.length == 0) {
-      return;
-    }
-
-    suggestByParameter(Arrays.stream(fileNames), suggestions,
-        params.isEmpty() ? null : params.get(0));
-  }
-
 }

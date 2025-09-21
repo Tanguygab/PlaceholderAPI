@@ -43,7 +43,7 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
 
     override fun isRegionThread(location: Location) = plugin.server.isOwnedByCurrentRegion(location)
 
-    override fun runTask(runnable: Runnable): = FoliaScheduledTask(globalRegionScheduler.run(plugin) { runnable.run() })
+    override fun runTask(runnable: Runnable) = FoliaScheduledTask(globalRegionScheduler.run(plugin) { runnable.run() })
 
     override fun runTaskLater(runnable: Runnable, delay: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
@@ -53,7 +53,7 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
 
     override fun runTaskTimer(runnable: Runnable, delay: Long, period: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
-        var delay = getOneIfNotPositive(delay)
+        val delay = getOneIfNotPositive(delay)
         return FoliaScheduledTask(
             globalRegionScheduler.runAtFixedRate(
                 plugin,
@@ -64,17 +64,20 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
         )
     }
 
-    override fun runTask(plugin: Plugin, runnable: Runnable) = FoliaScheduledTask(globalRegionScheduler.run(plugin, { runnable.run() }))
+    @Deprecated("")
+    override fun runTask(plugin: Plugin, runnable: Runnable) = FoliaScheduledTask(globalRegionScheduler.run(plugin) { runnable.run() })
 
+    @Deprecated("")
     override fun runTaskLater(plugin: Plugin, runnable: Runnable, delay: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
         return if (delay <= 0) runTask(plugin, runnable)
         else FoliaScheduledTask(globalRegionScheduler.runDelayed(plugin, { runnable.run() }, delay))
     }
 
+    @Deprecated("")
     override fun runTaskTimer(plugin: Plugin, runnable: Runnable, delay: Long, period: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
-        var delay = getOneIfNotPositive(delay)
+        val delay = getOneIfNotPositive(delay)
         return FoliaScheduledTask(
             globalRegionScheduler.runAtFixedRate(
                 plugin,
@@ -95,7 +98,7 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
 
     override fun runTaskTimer(location: Location, runnable: Runnable, delay: Long, period: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
-        var delay = getOneIfNotPositive(delay)
+        val delay = getOneIfNotPositive(delay)
         return FoliaScheduledTask(
             regionScheduler.runAtFixedRate(
                 plugin,
@@ -107,25 +110,25 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
         )
     }
 
-    override fun runTask(entity: Entity, runnable: Runnable) = FoliaScheduledTask(entity.scheduler.run(plugin, { runnable.run() }, null))
+    override fun runTask(entity: Entity, runnable: Runnable) = FoliaScheduledTask(entity.scheduler.run(plugin, { runnable.run() }, null)!!)
 
     override fun runTaskLater(entity: Entity, runnable: Runnable, delay: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
         return if (delay <= 0) runTask(entity, runnable)
-        else FoliaScheduledTask(entity.scheduler.runDelayed(plugin, { runnable.run() }, null, delay))
+        else FoliaScheduledTask(entity.scheduler.runDelayed(plugin, { runnable.run() }, null, delay)!!)
     }
 
     override fun runTaskTimer(entity: Entity, runnable: Runnable, delay: Long, period: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
-        var delay = getOneIfNotPositive(delay)
-        return FoliaScheduledTask(entity.scheduler.runAtFixedRate(plugin, { runnable.run() }, null, delay, period))
+        val delay = getOneIfNotPositive(delay)
+        return FoliaScheduledTask(entity.scheduler.runAtFixedRate(plugin, { runnable.run() }, null, delay, period)!!)
     }
 
     override fun runTaskAsynchronously(runnable: Runnable) = FoliaScheduledTask(asyncScheduler.runNow(plugin, { runnable.run() }))
 
     override fun runTaskLaterAsynchronously(runnable: Runnable, delay: Long): MyScheduledTask {
         //Folia exception: Delay ticks may not be <= 0
-        var delay = getOneIfNotPositive(delay)
+        val delay = getOneIfNotPositive(delay)
         return FoliaScheduledTask(
             asyncScheduler.runDelayed(
                 plugin,
@@ -189,7 +192,9 @@ open class FoliaScheduler(val plugin: Plugin) : TaskScheduler {
 
     override fun execute(location: Location, runnable: Runnable) = regionScheduler.execute(plugin, location, runnable)
 
-    override fun execute(entity: Entity, runnable: Runnable) = entity.scheduler.execute(plugin, runnable, null, 1L)
+    override fun execute(entity: Entity, runnable: Runnable) {
+        entity.scheduler.execute(plugin, runnable, null, 1L)
+    }
 
     override fun cancelTasks() {
         globalRegionScheduler.cancelTasks(plugin)

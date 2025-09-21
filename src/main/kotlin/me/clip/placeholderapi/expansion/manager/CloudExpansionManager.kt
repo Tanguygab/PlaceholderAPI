@@ -42,7 +42,7 @@ class CloudExpansionManager(val plugin: PlaceholderAPIPlugin) {
     private val cache = mutableMapOf<String, CloudExpansion>()
     private val await = ConcurrentHashMap<String, CompletableFuture<File>>()
 
-    private val ASYNC_EXECUTOR = Executors.newCachedThreadPool(ThreadFactoryBuilder().setNameFormat("placeholderapi-io-#%1\$d").build())
+    private val ASYNC_EXECUTOR = Executors.newCachedThreadPool(ThreadFactoryBuilder().setNameFormat($$"placeholderapi-io-#%1$d").build())
 
     fun load() {
         clean()
@@ -111,12 +111,12 @@ class CloudExpansionManager(val plugin: PlaceholderAPIPlugin) {
                         expansion.name = name
 
                         val local = plugin.localExpansionManager.findExpansionByName(name)
-                        if (local != null && local.registered) {
+                        if (local != null && local.isRegistered()) {
                             expansion.hasExpansion = true
                             expansion.shouldUpdate = !local.version.equals(expansion.latestVersion, ignoreCase = true)
                         }
 
-                        cache.put(toIndexName(expansion), expansion)
+                        cache[toIndexName(expansion)] = expansion
                     }
                 } catch (e: Throwable) {
                     // ugly swallowing of every throwable, but we have to be defensive
@@ -141,7 +141,7 @@ class CloudExpansionManager(val plugin: PlaceholderAPIPlugin) {
             try {
                 Channels.newChannel(URL(version.url).openStream()).use { source ->
                     FileOutputStream(file).use { target ->
-                        target.channel.transferFrom(source, 0, Long.Companion.MAX_VALUE)
+                        target.channel.transferFrom(source, 0, Long.MAX_VALUE)
                     }
                 }
             } catch (ex: IOException) {
@@ -157,7 +157,7 @@ class CloudExpansionManager(val plugin: PlaceholderAPIPlugin) {
             }
         }, ASYNC_EXECUTOR)
 
-        await.put(toIndexName(expansion), download)
+        await[toIndexName(expansion)] = download
 
         return download
     }

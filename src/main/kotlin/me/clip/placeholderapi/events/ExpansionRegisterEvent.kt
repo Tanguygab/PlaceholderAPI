@@ -53,13 +53,13 @@ class ExpansionRegisterEvent(
      *
      * @return Whether the event has been cancelled or not.
      */
-    fun isCancelled() = cancelled
+    override fun isCancelled() = cancelled
 
-    fun setCancelled(cancelled: Boolean) {
+    override fun setCancelled(cancelled: Boolean) {
         this.cancelled = cancelled
     }
 
-    fun getHandlers() = HANDLERS
+    override fun getHandlers() = HANDLERS
 
     companion object {
         private val HANDLERS = HandlerList()

@@ -29,9 +29,9 @@ class BukkitScheduledTask(private var task: BukkitTask, override val isRepeating
 
     override fun cancel() = task.cancel()
 
-    override fun isCancelled() = task.isCancelled()
+    override fun isCancelled() = task.isCancelled
 
-    override val owningPlugin = task.getOwner()
+    override val owningPlugin = task.owner
 
     override fun isCurrentlyRunning() = owningPlugin.server.scheduler.isCurrentlyRunning(task.taskId) //There's no other way. Fuck bukkit
 }

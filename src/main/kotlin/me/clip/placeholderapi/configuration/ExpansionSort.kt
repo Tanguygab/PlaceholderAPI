@@ -23,9 +23,9 @@ import me.clip.placeholderapi.expansion.cloud.CloudExpansion
 
 enum class ExpansionSort(private val comparator: Comparator<CloudExpansion>) : Comparator<CloudExpansion> {
 
-    NAME(Comparator.comparing<CloudExpansion, String> { it.name }),
-    AUTHOR(Comparator.comparing<CloudExpansion, String> { it.author }),
-    LATEST(Comparator.comparing<CloudExpansion, Long> { it.lastUpdate }.reversed());
+    NAME(Comparator.comparing { it.name }),
+    AUTHOR(Comparator.comparing { it.author }),
+    LATEST(Comparator.comparing { it: CloudExpansion -> it.lastUpdate }.reversed());
 
     override fun compare(expansion1: CloudExpansion, expansion2: CloudExpansion) = comparator.compare(expansion1, expansion2)
 }

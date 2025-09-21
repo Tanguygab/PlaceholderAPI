@@ -34,7 +34,7 @@ object UniversalScheduler {
     private val IS_CANVAS = JavaUtil.classExists("io.canvasmc.canvas.server.ThreadedServer")
     private val IS_EXPANDED_SCHEDULING_AVAILABLE = JavaUtil.classExists("io.papermc.paper.threadedregions.scheduler.ScheduledTask")
 
-    fun getScheduler(plugin: Plugin?): TaskScheduler {
+    fun getScheduler(plugin: Plugin): TaskScheduler {
         return when {
             IS_FOLIA || IS_CANVAS -> FoliaScheduler(plugin)
             IS_EXPANDED_SCHEDULING_AVAILABLE -> PaperScheduler(plugin)

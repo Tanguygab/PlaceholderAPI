@@ -17,113 +17,89 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package me.clip.placeholderapi.commands.impl.cloud
 
-package me.clip.placeholderapi.commands.impl.cloud;
+import me.clip.placeholderapi.PlaceholderAPIPlugin
+import me.clip.placeholderapi.commands.PlaceholderCommand
+import me.clip.placeholderapi.util.Msg
+import org.bukkit.command.CommandSender
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
-import me.clip.placeholderapi.commands.PlaceholderCommand;
-import me.clip.placeholderapi.expansion.cloud.CloudExpansion;
-import me.clip.placeholderapi.util.Msg;
-import org.bukkit.command.CommandSender;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
+class CommandECloudExpansionInfo : PlaceholderCommand("info") {
+    override fun evaluate(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>
+    ) {
+        if (params.isEmpty()) {
+            Msg.msg(sender, "&cYou must specify the name of the expansion.")
+            return
+        }
 
-public final class CommandECloudExpansionInfo extends PlaceholderCommand {
+        val expansion = plugin.cloudExpansionManager.findCloudExpansionByName(params[0])
+        if (expansion == null) {
+            Msg.msg(sender, "&cThere is no expansion with the name: &f" + params[0])
+            return
+        }
 
-  public CommandECloudExpansionInfo() {
-    super("info");
-  }
+        val builder = StringBuilder()
 
-  @Override
-  public void evaluate(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params) {
-    if (params.isEmpty()) {
-      Msg.msg(sender,
-          "&cYou must specify the name of the expansion.");
-      return;
+        builder.append("&bExpansion: &f")
+            .append(if (expansion.shouldUpdate) "&e" else "&a")
+            .append(expansion.name)
+            .append('\n')
+            .append("&bAuthor: &f")
+            .append(expansion.author)
+            .append('\n')
+            .append("&bVerified: ")
+            .append(if (expansion.isVerified) "&a&l✔" else "&c&l❌")
+            .append('\n')
+
+        if (params.size < 2) {
+            builder.append("&bLatest Version: &f")
+                .append(expansion.latestVersion)
+                .append('\n')
+                .append("&bReleased: &f")
+                .append(expansion.getTimeSinceLastUpdate())
+                .append(" ago")
+                .append('\n')
+                .append("&bRelease Notes: &f")
+                .append(expansion.getVersion()!!.releaseNotes)
+                .append('\n')
+        } else {
+            val version = expansion.getVersion(params[1])
+            if (version == null) {
+                Msg.msg(sender, "&cCould not find specified version: &f" + params[1], "&aVersions: &f" + expansion.getAvailableVersions())
+                return
+            }
+
+            builder.append("&bVersion: &f")
+                .append(version.version)
+                .append('\n')
+                .append("&bRelease Notes: &f")
+                .append(version.releaseNotes)
+                .append('\n')
+                .append("&bDownload URL: &f")
+                .append(version.url)
+                .append('\n')
+        }
+
+        Msg.msg(sender, builder.toString())
     }
 
-    final CloudExpansion expansion = plugin.getCloudExpansionManager()
-        .findCloudExpansionByName(params.get(0)).orElse(null);
-    if (expansion == null) {
-      Msg.msg(sender,
-          "&cThere is no expansion with the name: &f" + params.get(0));
-      return;
+    override fun complete(
+        plugin: PlaceholderAPIPlugin,
+        sender: CommandSender, alias: String,
+        params: List<String>, suggestions: MutableList<String>
+    ) {
+        if (params.size > 2) return
+
+        if (params.size <= 1) {
+            val names = plugin.cloudExpansionManager.getCloudExpansions().values.map{ it.name.replace(' ', '_') }
+            suggestByParameter(names, suggestions, if (params.isEmpty()) null else params[0])
+            return
+        }
+
+        val expansion = plugin.cloudExpansionManager.findCloudExpansionByName(params[0]) ?: return
+        suggestByParameter(expansion.getAvailableVersions(), suggestions, params[1])
     }
-
-    final StringBuilder builder = new StringBuilder();
-
-    builder.append("&bExpansion: &f")
-        .append(expansion.shouldUpdate() ? "&e" : "&a")
-        .append(expansion.getName())
-        .append('\n')
-        .append("&bAuthor: &f")
-        .append(expansion.getAuthor())
-        .append('\n')
-        .append("&bVerified: ")
-        .append(expansion.isVerified() ? "&a&l✔" : "&c&l❌")
-        .append('\n');
-
-    if (params.size() < 2) {
-      builder.append("&bLatest Version: &f")
-          .append(expansion.getLatestVersion())
-          .append('\n')
-          .append("&bReleased: &f")
-          .append(expansion.getTimeSinceLastUpdate())
-          .append(" ago")
-          .append('\n')
-          .append("&bRelease Notes: &f")
-          .append(expansion.getVersion().getReleaseNotes())
-          .append('\n');
-    } else {
-      final CloudExpansion.Version version = expansion.getVersion(params.get(1));
-      if (version == null) {
-        Msg.msg(sender,
-            "&cCould not find specified version: &f" + params.get(1),
-            "&aVersions: &f" + expansion.getAvailableVersions());
-        return;
-      }
-
-      builder.append("&bVersion: &f")
-          .append(version.getVersion())
-          .append('\n')
-          .append("&bRelease Notes: &f")
-          .append(version.getReleaseNotes())
-          .append('\n')
-          .append("&bDownload URL: &f")
-          .append(version.getUrl())
-          .append('\n');
-    }
-
-    Msg.msg(sender, builder.toString());
-  }
-
-  @Override
-  public void complete(@NotNull final PlaceholderAPIPlugin plugin,
-      @NotNull final CommandSender sender, @NotNull final String alias,
-      @NotNull @Unmodifiable final List<String> params, @NotNull final List<String> suggestions) {
-    if (params.size() > 2) {
-      return;
-    }
-
-    if (params.size() <= 1) {
-      final Stream<String> names = plugin.getCloudExpansionManager().getCloudExpansions().values()
-          .stream().map(CloudExpansion::getName).map(name -> name.replace(' ', '_'));
-      suggestByParameter(names, suggestions, params.isEmpty() ? null : params.get(0));
-      return;
-    }
-
-    final Optional<CloudExpansion> expansion = plugin.getCloudExpansionManager()
-        .findCloudExpansionByName(params.get(0));
-    if (!expansion.isPresent()) {
-      return;
-    }
-
-    suggestByParameter(expansion.get().getAvailableVersions().stream(), suggestions, params.get(1));
-  }
-
 }
