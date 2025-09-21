@@ -25,11 +25,11 @@ import org.openjdk.jmh.annotations.Benchmark
 class ReplacerBenchmarks {
     @Benchmark
     fun measureCharsReplacerSmallText() {
-        Values.CHARS_REPLACER.apply(Values.SMALL_TEXT, null) { o: Any? -> Values.PLACEHOLDERS.get(o) }
+        Values.CHARS_REPLACER.apply(Values.SMALL_TEXT, null) { Values.PLACEHOLDERS[it] }
     }
 
     @Benchmark
     fun measureCharsReplacerLargeText() {
-        Values.CHARS_REPLACER.apply(Values.LARGE_TEXT, null) { o: Any? -> Values.PLACEHOLDERS.get(o) }
+        Values.CHARS_REPLACER.apply(Values.LARGE_TEXT, null) { Values.PLACEHOLDERS[it] }
     }
 }

@@ -77,7 +77,8 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return [.getIdentifier] by default, name of this expansion if specified
      */
-    open val name = identifier
+    open val name
+        get() = identifier
 
     // === Deprecated API ===
     /**
@@ -92,7 +93,8 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return plugin name that this expansion requires to function
      */
-    open val requiredPlugin = plugin
+    open val requiredPlugin
+        get() = plugin
 
     /**
      * The placeholders associated with this expansion
@@ -157,7 +159,8 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      *
      * @return ConfigurationSection that this expansion has.
      */
-    val configSection = placeholderAPI.config.getConfigurationSection("expansions.$identifier")
+    val configSection
+        get() = placeholderAPI.config.getConfigurationSection("expansions.$identifier")
 
     /**
      * Gets the ConfigurationSection relative to the [default one][.getConfigSection] set
@@ -177,7 +180,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @return Object from the provided path or the default one provided
      */
     @Contract("_, !null -> !null")
-    fun get(path: String, def: Any?) = if (configSection == null) def else configSection.get(path, def)
+    fun get(path: String, def: Any?) = configSection?.get(path, def) ?: def
 
     /**
      * Gets the int relative to the [default ConfigurationSection][.getConfigSection] set
@@ -247,7 +250,7 @@ abstract class PlaceholderExpansion : PlaceholderHook() {
      * @param path The path to check
      * @return true when the default ConfigurationSection is not null and contains the path, false otherwise
      */
-    fun configurationContains(path: String) = configSection != null && configSection.contains(path)
+    fun configurationContains(path: String) = configSection?.contains(path) == true
 
     /**
      * Logs the provided message with the provided Level in the console.

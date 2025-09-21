@@ -170,6 +170,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          *
          * @return PlaceholderAPIPlugin instance
          */
+        @JvmStatic
         fun getInstance() = INSTANCE
 
         /**
@@ -177,6 +178,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          *
          * @return string value of true
          */
+        @JvmStatic
         fun booleanTrue() = INSTANCE.placeholderAPIConfig.booleanTrue
 
         /**
@@ -184,6 +186,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          *
          * @return string value of false
          */
+        @JvmStatic
         fun booleanFalse() = INSTANCE.placeholderAPIConfig.booleanFalse
 
         /**
@@ -192,6 +195,7 @@ class PlaceholderAPIPlugin : JavaPlugin() {
          *
          * @return date format
          */
+        @JvmStatic
         fun getDateFormat(): SimpleDateFormat {
             return try {
                 SimpleDateFormat(INSTANCE.placeholderAPIConfig.dateFormat)
